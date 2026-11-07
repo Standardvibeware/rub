@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖍️</text></svg>">
+<title>Rub-A-Monster Maker</title>
+<style>
+  :root {
+    --frame: #1c1a17;
+    --frame-edge: #2e2a25;
+    --tray: #e8641f;
+    --tray-dark: #b84a12;
+    --cream: #f7f2e4;
+    --avocado: #7a8f3c;
+    --ink: #2a2118;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: ui-rounded, "Arial Rounded MT Bold", "Segoe UI", system-ui, sans-serif;
+    background:
+      radial-gradient(1200px 800px at 30% 20%, #6b4f35 0%, transparent 60%),
+      repeating-linear-gradient(93deg, #5a4128 0 90px, #563e26 90px 180px),
+      #54401f;
+    color: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 10px 30px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  header { text-align: center; margin-bottom: 12px; }
+  h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    letter-spacing: 1px;
+    font-weight: 900;
+    color: #ffd23f;
+    text-shadow: 3px 3px 0 var(--ink), 6px 6px 0 rgba(0,0,0,.35);
+    transform: rotate(-1.2deg);
+  }
+  h1 .sub { color: var(--cream); font-size: .45em; display: block; letter-spacing: 4px; text-shadow: 2px 2px 0 var(--ink); }
+  .combo {
+    display: inline-block;
+    margin-top: 8px;
+    background: var(--ink);
+    color: #ffd23f;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 2px dashed #6b5a3e;
+  }
+  main { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; align-items: flex-start; max-width: 1100px; }
+
+  /* ---- black plastic frame holding the paper ---- */
+  .frame-wrap { position: relative; }
+  .frame {
+    background: linear-gradient(160deg, var(--frame-edge), var(--frame) 40%, #12100e);
+    border-radius: 18px;
+    padding: 26px 26px 20px;
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.09),
+      inset 0 -4px 8px rgba(0,0,0,.6),
+      0 14px 34px rgba(0,0,0,.55);
+    position: relative;
+  }
+  .frame::before, .frame::after,
+  .frame-wrap .screw-b, .frame-wrap .screw-t {
+    content: "";
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #6a625a, #35302b 60%, #1a1714);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06);
+  }
+  .frame::before { top: 7px; left: 12px; }
+  .frame::after  { top: 7px; right: 12px; }
+  .frame-wrap .screw-b { position: absolute; bottom: 7px; left: 12px; }
+  .frame-wrap .screw-t { position: absolute; bottom: 7px; right: 12px; }
+  .paper-holder {
+    background: #0c0a09;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: inset 0 3px 10px rgba(0,0,0,.85);
+    line-height: 0;
+  }
+  #paper {
+    width: min(46vh, 82vw, 400px);
+    aspect-ratio: 3 / 4;
+    border-radius: 2px;
+    cursor: crosshair;
+    touch-action: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    opacity: .75;
+    margin-top: 8px;
+    max-width: 420px;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  /* ---- right panel ---- */
+  .panel { display: flex; flex-direction: column; gap: 12px; width: 320px; }
+  .tray {
+    background: linear-gradient(180deg, var(--tray), var(--tray-dark));
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.28), inset 0 -3px 6px rgba(0,0,0,.28), 0 8px 22px rgba(0,0,0,.45);
+  }
+  .packtabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .packtabs button {
+    flex: 1;
+    font-family: inherit;
+    font-weight: 900; font-size: 12px; letter-spacing: 1px;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: rgba(0,0,0,.25);
+    color: #ffe9c4;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.35);
+  }
+  .packtabs button.on { background: linear-gradient(180deg, #ffd23f, #eab522); color: #6b3c07; }
+  .tray h2 {
+    font-size: 13px;
+    letter-spacing: 3px;
+    font-weight: 900;
+    color: #fff3d6;
+    text-shadow: 1px 1px 0 rgba(0,0,0,.4);
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .slot {
+    display: grid;
+    grid-template-columns: 56px 1fr 34px;
+    gap: 6px;
+    align-items: center;
+    background: rgba(0,0,0,.18);
+    border-radius: 10px;
+    padding: 7px 8px;
+    margin-bottom: 8px;
+  }
+  .slot:last-of-type { margin-bottom: 0; }
+  .slot .preview {
+    width: 56px; height: 74px;
+    background: var(--cream);
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.22), inset 0 -8px 12px rgba(120,90,40,.14);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .slot .preview canvas { width: 100%; height: 100%; }
+  .slot .info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .slot .zone {
+    font-size: 10px; font-weight: 900; letter-spacing: 2px;
+    color: #ffe9c4; opacity: .85;
+  }
+  .slot .name {
+    font-size: 15px; font-weight: 800; color: #fff;
+    text-shadow: 1px 1px 0 rgba(0,0,0,.35);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .slot .cycle {
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .slot button {
+    font-family: inherit;
+    font-size: 13px; font-weight: 900;
+    line-height: 1;
+    padding: 6px 0;
+    width: 34px;
+    border: none;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #ffdf9e, #f4b23f);
+    color: #6b3c07;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #a86a14, inset 0 1px 0 #fff8e0;
+  }
+  .slot button:active { transform: translateY(1px); box-shadow: 0 1px 0 #a86a14, inset 0 1px 0 #fff8e0; }
+
+  .btnrow { display: flex; gap: 8px; margin-top: 10px; }
+  .tray .bigbtn {
+    flex: 1;
+    font-family: inherit;
+    font-size: 13px; font-weight: 900; letter-spacing: 1px;
+    padding: 9px 4px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #ffdf9e, #f4b23f);
+    color: #6b3c07;
+    box-shadow: 0 3px 0 #a86a14, inset 0 1px 0 #fff8e0;
+  }
+  .tray .bigbtn:active { transform: translateY(1px); box-shadow: 0 2px 0 #a86a14, inset 0 1px 0 #fff8e0; }
+
+  /* ---- crayon box ---- */
+  .crayonbox {
+    background: linear-gradient(180deg, #8a5a2b, #6d4520);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: inset 0 2px 0 rgba(255,255,255,.22), inset 0 -3px 6px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.45);
+  }
+  .crayonbox h2 {
+    font-size: 12px; letter-spacing: 3px; font-weight: 900;
+    color: #ffe9c4; text-align: center; margin-bottom: 9px;
+    text-shadow: 1px 1px 0 rgba(0,0,0,.4);
+  }
+  .crayons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px 6px; }
+  .crayon {
+    height: 52px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px 5px 3px 3px;
+    position: relative;
+    background: linear-gradient(90deg, rgba(255,255,255,.34), rgba(255,255,255,0) 28%, rgba(0,0,0,.12) 82%, rgba(0,0,0,.28));
+    box-shadow: inset 0 -4px 6px rgba(0,0,0,.25), 0 3px 4px rgba(0,0,0,.35);
+    transition: transform .08s;
+    font-family: inherit;
+  }
+  .crayon::after {
+    content: "";
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%);
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-bottom: 12px solid inherit;
+    filter: brightness(1.05);
+    background: inherit;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    width: 18px; height: 11px;
+  }
+  .crayon span {
+    position: absolute;
+    inset: 34% 22%;
+    background: rgba(247,242,228,.92);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.3);
+  }
+  .crayon.sel { transform: translateY(-5px); box-shadow: inset 0 -4px 6px rgba(0,0,0,.25), 0 7px 10px rgba(0,0,0,.45), 0 0 0 3px #ffd23f; }
+
+  /* ---- tools ---- */
+  .tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .tool {
+    font-family: inherit;
+    font-size: 13px; font-weight: 900; letter-spacing: 1px;
+    padding: 11px 6px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #fff;
+    background: linear-gradient(180deg, var(--avocado), #5c6e2c);
+    box-shadow: 0 3px 0 #3f4c1e, inset 0 1px 0 rgba(255,255,255,.35);
+    text-shadow: 1px 1px 0 rgba(0,0,0,.35);
+  }
+  .tool:active { transform: translateY(1px); }
+  .tool.on { background: linear-gradient(180deg, #ffd23f, #eab522); color: #6b3c07; text-shadow: none; box-shadow: 0 3px 0 #a87d10, inset 0 1px 0 #fff8e0; }
+  .tool.ghost { background: linear-gradient(180deg, #5a5248, #3e3831); box-shadow: 0 3px 0 #26221d, inset 0 1px 0 rgba(255,255,255,.25); }
+  footer { margin-top: 14px; font-size: 11px; opacity: .55; }
+  @media (max-width: 760px) {
+    main { flex-direction: column; align-items: center; }
+    .panel { width: min(94vw, 430px); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>RUB-A-MONSTER MAKER<span class="sub">RUB &middot; TRACE &middot; COLOR</span></h1>
+  <div class="combo" id="comboName">PICK YOUR PLATES!</div>
+</header>
+
+<main>
+  <div class="frame-wrap">
+    <div class="frame">
+      <div class="paper-holder"><canvas id="paper" width="480" height="640"></canvas></div>
+      <div class="screw-b"></div><div class="screw-t"></div>
+    </div>
+    <p class="hint">Pick plates on the right, then <b>scribble back &amp; forth</b> on the paper to rub the hidden design through &mdash; just like the real toy. Switch to COLOR to fill it in!</p>
+  </div>
+
+  <div class="panel">
+    <div class="tray">
+      <h2>PLATE TRAY</h2>
+      <div class="packtabs">
+        <button id="packMonster" class="on">MONSTERS</button>
+        <button id="packFashion">FASHION</button>
+      </div>
+      <div class="slot" data-zone="0">
+        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="info"><div class="zone">HEAD</div><div class="name"></div></div>
+        <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
+      </div>
+      <div class="slot" data-zone="1">
+        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="info"><div class="zone">TORSO</div><div class="name"></div></div>
+        <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
+      </div>
+      <div class="slot" data-zone="2">
+        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="info"><div class="zone">LEGS</div><div class="name"></div></div>
+        <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
+      </div>
+      <div class="btnrow">
+        <button class="bigbtn" id="shuffleBtn">SHUFFLE</button>
+        <button class="bigbtn" id="sheetBtn">NEW SHEET</button>
+      </div>
+    </div>
+
+    <div class="crayonbox">
+      <h2>CRAYON BOX</h2>
+      <div class="crayons" id="crayons"></div>
+    </div>
+
+    <div class="tools">
+      <button class="tool on" id="modeRub">RUB / TRACE</button>
+      <button class="tool" id="modeColor">COLOR IN</button>
+      <button class="tool ghost" id="peekBtn">PEEK (HOLD)</button>
+      <button class="tool" id="saveBtn">SAVE PNG</button>
+    </div>
+  </div>
+</main>
+
+<footer>A loving tribute to the classic rubbing-plate toys &mdash; monsters AND fashions, hundreds of combinations!</footer>
+
+<script>
+"use strict";
+
+/* ============ geometry helpers ============ */
+const P = (...pts) => pts;
+const M = paths => paths.map(path => path.map(([x, y]) => [480 - x, y])); // mirror paths around x=240
+function ellipsePts(cx, cy, rx, ry, n) {
+  const out = [];
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+    out.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+  }
+  return out;
+}
+function starPts(cx, cy, rOut, rIn, n) {
+  const out = [];
+  for (let i = 0; i <= n * 2; i++) {
+    const r = i % 2 === 0 ? rOut : rIn;
+    const a = (i / (n * 2)) * Math.PI * 2 - Math.PI / 2;
+    out.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+  }
+  return out;
+}
+
+/* ============ plate art ============
+   zones: HEAD y 50..252 | TORSO y 252..450 | LEGS y 450..632
+   shared anchors: neck x 226..254 @ y252, waist x 196..284 @ y450  */
+
+const HEADS = [
+{ name: "CAPTAIN JAW", paths: [
+  P([186,96],[294,96],[302,132],[294,196],[276,214],[256,218],[240,210],[224,218],[204,214],[186,196],[178,132],[186,96]),
+  P([178,136],[302,136]),
+  P([202,158],[224,152],[224,166],[202,170],[202,158]),
+  ...M([P([202,158],[224,152],[224,166],[202,170],[202,158])]),
+  P([224,192],[240,197],[256,192]),
+  P([178,138],[162,146],[178,154]),
+  ...M([P([178,138],[162,146],[178,154])]),
+  P([226,218],[226,252]), P([254,218],[254,252]),
+]},
+{ name: "ROBOTRON", paths: [
+  P([192,102],[288,102],[300,114],[300,188],[288,200],[192,200],[180,188],[180,114],[192,102]),
+  P([240,102],[240,72]),
+  P([206,168],[274,168]),
+  P([212,168],[212,190]), P([226,168],[226,190]), P([240,168],[240,190]), P([254,168],[254,190]), P([268,168],[268,190]),
+  P([226,200],[226,252]), P([254,200],[254,252]), P([226,226],[254,226]),
+], circles: [[240,66,7],[214,142,11],[266,142,11],[214,142,3],[266,142,3],[188,122,4],[292,122,4]] },
+{ name: "GRRR-ARRGH", paths: [
+  P([172,122],[202,96],[240,88],[278,96],[308,122],[314,158],[296,198],[256,216],[224,216],[184,198],[166,158],[172,122]),
+  P([198,96],[182,62],[206,88]),
+  ...M([P([198,96],[182,62],[206,88])]),
+  P([196,136],[230,148]),
+  ...M([P([196,136],[230,148])]),
+  P([198,178],[240,170],[282,178]),
+  P([202,184],[216,192],[230,184],[244,192],[258,184],[272,192]),
+  P([230,216],[230,252]), P([250,216],[250,252]),
+], circles: [[216,158,7],[264,158,7],[216,158,2],[264,158,2]] },
+{ name: "ZORBO", paths: [
+  ellipsePts(240,150,76,60,18),
+  P([194,144],[226,124],[228,150],[194,144]),
+  ...M([P([194,144],[226,124],[228,150],[194,144])]),
+  P([230,196],[250,196]),
+  P([230,210],[230,252]), P([250,210],[250,252]),
+], circles: [[234,172,2],[246,172,2]] },
+{ name: "CHOMPERS", paths: [
+  P([202,112],[278,112],[298,140],[294,190],[240,206],[186,190],[182,140],[202,112]),
+  P([214,112],[198,78]),
+  ...M([P([214,112],[198,78])]),
+  P([210,202],[190,226],[206,234]),
+  ...M([P([210,202],[190,226],[206,234])]),
+  P([228,204],[232,216]),
+  ...M([P([228,204],[232,216])]),
+  P([230,206],[230,252]), P([250,206],[250,252]),
+], circles: [[206,150,17],[274,150,17],[198,74,3],[282,74,3]] },
+];
+
+const TORSOS = [
+{ name: "MIGHTY CHEST", paths: [
+  P([156,276],[196,258],[226,262],[240,260],[254,262],[284,258],[324,276],[330,302],[308,332],[294,362],[286,420],[276,450],[204,450],[194,420],[186,362],[172,332],[150,302],[156,276]),
+  P([226,262],[240,276],[254,262]),
+  starPts(240,322,24,10,5),
+  P([200,302],[234,312]),
+  ...M([P([200,302],[234,312])]),
+  P([240,344],[240,420]),
+  P([220,368],[260,368]),
+  P([206,428],[274,428]), P([206,441],[274,441]),
+  P([228,428],[252,428],[252,450],[228,450],[228,428]),
+  P([156,276],[138,304],[148,384],[156,440]),
+  ...M([P([156,276],[138,304],[148,384],[156,440])]),
+]},
+{ name: "ROBOT CHASSIS", paths: [
+  P([172,266],[308,266],[318,278],[318,382],[300,450],[180,450],[162,382],[162,278],[172,266]),
+  P([210,288],[270,288],[270,330],[210,330],[210,288]),
+  P([216,322],[226,306],[236,320],[246,306],[256,320],[264,308]),
+  P([240,368],[250,358]),
+  P([180,398],[220,398]), P([180,411],[220,411]), P([180,424],[220,424]),
+  P([196,412],[284,412]),
+], circles: [[240,368,16],[174,278,4],[306,278,4],[174,438,4],[306,438,4]] },
+{ name: "BEAST HIDE", paths: [
+  P([162,282],[176,262],[188,280],[202,258],[216,278],[240,252],[264,278],[278,258],[292,280],[304,262],[318,282],[316,332],[298,382],[286,420],[276,450],[204,450],[194,420],[182,382],[164,332],[162,282]),
+  P([202,300],[240,294],[278,300]),
+  P([214,362],[240,352],[266,362]),
+  P([220,392],[240,384],[260,392]),
+  P([224,420],[240,414],[256,420]),
+], circles: [[240,432,3]] },
+{ name: "BUG THORAX", paths: [
+  P([166,270],[240,254],[314,270],[322,312],[310,450],[170,450],[158,312],[166,270]),
+  P([162,302],[318,302]),
+  P([166,342],[314,342]),
+  P([172,386],[308,386]),
+  P([240,302],[240,450]),
+], circles: [[172,322,3],[308,322,3],[176,364,3],[304,364,3]] },
+{ name: "RIB CAGE", paths: [
+  P([170,270],[310,270],[318,320],[300,380],[286,420],[276,450],[204,450],[194,420],[180,380],[162,320],[170,270]),
+  P([196,302],[284,302]),
+  P([190,326],[290,326]),
+  P([192,350],[288,350]),
+  P([198,374],[282,374]),
+  P([240,292],[240,400]),
+  P([212,430],[240,416],[268,430]),
+]},
+];
+
+const LEGS = [
+{ name: "POWER BOOTS", paths: [
+  P([196,450],[284,450]),
+  P([198,452],[190,502],[196,548],[188,588],[184,606]),
+  P([228,452],[226,502],[232,548],[238,588],[240,610]),
+  P([184,606],[150,608],[148,624],[198,626],[202,606],[184,606]),
+  ...M([P([198,452],[190,502],[196,548],[188,588],[184,606]),
+       P([228,452],[226,502],[232,548],[238,588],[240,610]),
+       P([184,606],[150,608],[148,624],[198,626],[202,606],[184,606])]),
+]},
+{ name: "TANK TREADS", paths: [
+  P([196,450],[284,450]),
+  P([198,452],[190,500],[198,548],[192,586]),
+  P([226,452],[224,500],[232,548],[234,586]),
+  P([186,588],[146,590],[144,616],[240,618],[238,590]),
+  P([158,590],[156,616]), P([172,590],[170,616]), P([186,590],[184,616]), P([200,590],[198,616]), P([214,590],[212,616]), P([228,590],[226,616]),
+  ...M([P([198,452],[190,500],[198,548],[192,586]),
+       P([226,452],[224,500],[232,548],[234,586]),
+       P([186,588],[146,590],[144,616],[240,618],[238,590]),
+       P([158,590],[156,616]), P([172,590],[170,616]), P([186,590],[184,616]), P([200,590],[198,616]), P([214,590],[212,616]), P([228,590],[226,616])]),
+], circles: [[208,524,7],[272,524,7]] },
+{ name: "CLAW FEET", paths: [
+  P([196,450],[284,450]),
+  P([200,452],[186,496],[196,532],[180,566],[172,596]),
+  P([230,452],[226,496],[238,532],[242,566],[250,598]),
+  P([172,598],[146,602],[148,618],[178,620]),
+  P([148,604],[140,596]), P([160,604],[154,594]),
+  P([190,472],[174,460]),
+  P([184,540],[166,536]),
+  ...M([P([200,452],[186,496],[196,532],[180,566],[172,596]),
+       P([230,452],[226,496],[238,532],[242,566],[250,598]),
+       P([172,598],[146,602],[148,618],[178,620]),
+       P([148,604],[140,596]), P([160,604],[154,594]),
+       P([190,472],[174,460]),
+       P([184,540],[166,536])]),
+]},
+{ name: "CREEPY CRAWLERS", paths: [
+  P([196,450],[284,450]),
+  P([222,456],[218,540],[240,576],[262,540],[258,456],[222,456]),
+  P([206,456],[164,482],[132,522],[124,556]),
+  P([212,462],[172,502],[142,548],[138,588]),
+  P([218,468],[184,512],[164,562],[162,604]),
+  P([124,556],[114,550]), P([138,588],[128,582]), P([162,604],[152,598]),
+  ...M([P([206,456],[164,482],[132,522],[124,556]),
+       P([212,462],[172,502],[142,548],[138,588]),
+       P([218,468],[184,512],[164,562],[162,604]),
+       P([124,556],[114,550]), P([138,588],[128,582]), P([162,604],[152,598])]),
+], thin: [
+  P([220,488],[240,480],[260,488]),
+  P([219,520],[240,512],[261,520]),
+], circles: [[164,482,3],[132,522,3],[172,502,3],[142,548,3],[184,512,3],[164,562,3],[316,482,3],[348,522,3],[308,502,3],[338,548,3],[296,512,3],[316,562,3]] },
+{ name: "SHAMBLE FEET", paths: [
+  P([196,450],[284,450]),
+  P([202,452],[196,502],[202,548],[196,586]),
+  P([230,452],[228,502],[236,548],[240,586]),
+  P([196,586],[166,588],[166,606],[204,608],[208,588],[196,588]),
+  ...M([P([202,452],[196,502],[202,548],[196,586]),
+       P([230,452],[228,502],[236,548],[240,586]),
+       P([196,586],[166,588],[166,606],[204,608],[208,588],[196,588])]),
+], circles: [[214,524,5],[266,524,5]] },
+];
+
+/* ---- FASHION pack: doll/dress plates, same anchors ---- */
+
+const FASHION_HEADS = [
+{ name: "SUNNY BANGS", paths: [
+  P([196,118],[194,158],[204,190],[224,208],[240,212],[256,208],[276,190],[286,158],[284,118]),
+  P([190,170],[184,120],[198,92],[240,78],[282,92],[296,120],[290,170]),
+  P([190,170],[188,200]),
+  ...M([P([190,170],[188,200])]),
+  P([204,122],[210,106],[228,98],[240,96],[252,98],[270,106],[276,122]),
+  P([212,156],[218,150],[224,156]),
+  ...M([P([212,156],[218,150],[224,156])]),
+  P([210,152],[205,148]),
+  ...M([P([210,152],[205,148])]),
+  P([230,184],[240,189],[250,184]),
+  P([228,212],[228,252]), P([252,212],[252,252]),
+], circles: [[190,188,3],[290,188,3]], thin: [
+  P([206,122],[213,115],[220,123]),
+  P([240,118],[247,111],[254,119]),
+  P([266,122],[273,115],[278,122]),
+]},
+{ name: "HIGH PONYTAIL", paths: [
+  P([196,118],[194,158],[204,190],[224,208],[240,212],[256,208],[276,190],[286,158],[284,118]),
+  P([192,164],[186,114],[200,88],[240,78],[280,88],[294,114],[290,160]),
+  P([214,108],[240,120],[266,108]),
+  P([288,96],[308,78],[322,92],[326,122],[320,152],[306,172],[294,178]),
+  P([208,138],[222,134]),
+  ...M([P([208,138],[222,134])]),
+  P([232,184],[240,189],[248,184]),
+  P([228,212],[228,252]), P([252,212],[252,252]),
+], circles: [[216,156,3],[264,156,3]], thin: [
+  P([312,96],[318,128],[310,158]),
+  P([302,90],[308,120]),
+]},
+{ name: "CURLY QUEEN", paths: [
+  P([206,126],[202,158],[210,186],[226,202],[240,206],[254,202],[270,186],[278,158],[274,126]),
+  P([210,138],[224,134]),
+  ...M([P([210,138],[224,134])]),
+  P([230,184],[240,189],[250,184]),
+  P([228,206],[228,252]), P([252,206],[252,252]),
+], circles: [[218,156,3],[262,156,3],[196,118,15],[182,148,13],[186,180,12],[206,198,12],[240,206,13],[274,198,12],[294,180,12],[298,148,13],[284,118,15],[210,100,14],[240,90,16],[270,100,14]] },
+{ name: "SIDE BRAID", paths: [
+  P([196,118],[194,158],[204,190],[224,208],[240,212],[256,208],[276,190],[286,158],[284,118]),
+  P([192,164],[186,114],[200,88],[240,78],[280,88],[294,114],[290,158]),
+  P([212,106],[240,116],[268,106]),
+  P([188,150],[176,170],[186,184],[172,202],[184,216],[172,234]),
+  P([290,152],[296,180],[292,204]),
+  P([232,184],[240,189],[248,184]),
+  P([228,212],[228,252]), P([252,212],[252,252]),
+], circles: [[216,156,3],[264,156,3],[178,240,4]], thin: [
+  P([180,168],[184,180]),
+  P([176,196],[182,210]),
+]},
+{ name: "STRAW HAT", paths: [
+  ellipsePts(240,112,76,17,14),
+  P([206,98],[210,74],[240,66],[270,74],[274,98]),
+  P([208,94],[272,94]),
+  P([228,90],[222,78],[234,84]),
+  ...M([P([228,90],[222,78],[234,84])]),
+  P([200,130],[198,162],[208,190],[226,206],[240,210],[254,206],[272,190],[282,162],[280,130]),
+  P([198,140],[188,168],[190,196],[200,214]),
+  P([282,140],[292,168],[290,196],[280,214]),
+  P([212,156],[218,150],[224,156]),
+  ...M([P([212,156],[218,150],[224,156])]),
+  P([230,184],[240,189],[250,184]),
+  P([228,210],[228,252]), P([252,210],[252,252]),
+]},
+];
+
+const FASHION_TORSOS = [
+{ name: "RUFFLE BLOUSE", paths: [
+  P([184,292],[196,264],[224,258],[240,262],[256,258],[284,264],[296,292],[306,304],[300,318],[288,312],[278,336],[272,420],[264,450],[216,450],[208,420],[202,336],[192,312],[180,318],[174,304],[184,292]),
+  P([212,438],[268,438]),
+], circles: [[240,312,2.5],[240,330,2.5],[240,348,2.5]], thin: [
+  P([222,272],[230,282],[240,272],[250,282],[258,272]),
+  P([240,296],[240,362]),
+]},
+{ name: "DENIM JACKET", paths: [
+  P([182,290],[194,262],[226,258],[240,266],[254,258],[286,262],[298,290],[302,316],[292,334],[282,420],[272,450],[208,450],[198,420],[188,334],[178,316],[182,290]),
+  P([226,258],[240,278],[254,258]),
+  P([226,258],[216,280]),
+  ...M([P([226,258],[216,280])]),
+  P([240,282],[240,446]),
+  P([208,340],[228,340],[228,362],[208,362],[208,340]),
+  ...M([P([208,340],[228,340],[228,362],[208,362],[208,340])]),
+  P([198,300],[218,318]),
+  ...M([P([198,300],[218,318])]),
+  P([206,436],[274,436]),
+]},
+{ name: "SWEETHEART GOWN", paths: [
+  P([184,300],[198,266],[240,280],[282,266],[296,300],[296,330],[288,380],[280,420],[272,450],[208,450],[200,420],[192,380],[184,330],[184,300]),
+  P([212,288],[240,304],[268,288]),
+  P([212,288],[206,268]),
+  ...M([P([212,288],[206,268])]),
+  P([212,440],[268,440]),
+], circles: [[240,302,3]], thin: [
+  P([224,432],[220,414]),
+  P([240,434],[240,412]),
+  P([256,432],[260,414]),
+  P([222,284],[240,298],[258,284]),
+]},
+{ name: "STRIPED TEE", paths: [
+  P([188,296],[200,266],[228,260],[240,264],[252,260],[280,266],[292,296],[296,320],[286,338],[278,420],[270,450],[210,450],[202,420],[194,338],[184,320],[188,296]),
+  P([224,262],[240,278],[256,262]),
+  P([190,300],[206,308]),
+  ...M([P([190,300],[206,308])]),
+  P([192,322],[288,322]),
+  P([196,346],[284,346]),
+  P([200,370],[280,370]),
+  P([204,394],[276,394]),
+  P([208,418],[272,418]),
+  P([210,442],[270,442]),
+]},
+{ name: "VEST & SCARF", paths: [
+  P([218,262],[240,272],[262,262],[262,282],[240,292],[218,282],[218,262]),
+  P([248,290],[258,318],[250,346],[260,372]),
+  P([190,300],[202,286],[218,284],[240,298],[262,284],[278,286],[290,300],[294,330],[286,380],[278,420],[270,450],[210,450],[202,420],[194,380],[186,330],[190,300]),
+  P([226,298],[218,446]),
+  ...M([P([226,298],[218,446])]),
+  P([206,430],[274,430]),
+], circles: [[222,344,2.5],[220,384,2.5],[258,344,2.5],[260,384,2.5]] },
+];
+
+const FASHION_LEGS = [
+{ name: "TWIRL SKIRT", paths: [
+  P([210,450],[196,530],[188,586],[200,600],[212,592],[224,604],[240,596],[256,604],[268,592],[280,600],[292,586],[284,530],[270,450]),
+  P([224,602],[222,622]),
+  ...M([P([224,602],[222,622])]),
+  P([218,622],[206,624],[204,633],[230,633],[230,622],[218,622]),
+  ...M([P([218,622],[206,624],[204,633],[230,633],[230,622],[218,622])]),
+], thin: [
+  P([218,458],[210,578]),
+  P([240,458],[240,588]),
+  P([262,458],[270,578]),
+]},
+{ name: "BELL BOTTOMS", paths: [
+  P([212,450],[202,496],[204,538],[196,570],[184,604],[178,618],[188,626],[248,626],[250,610],[240,576],[236,530],[236,490],[234,450],[212,450]),
+  ...M([P([212,450],[202,496],[204,538],[196,570],[184,604],[178,618],[188,626],[248,626],[250,610],[240,576],[236,530],[236,490],[234,450],[212,450])]),
+  P([210,456],[270,456]),
+  P([210,470],[270,470]),
+]},
+{ name: "CAPRI & FLATS", paths: [
+  P([212,450],[204,494],[206,528],[202,556],[212,562],[232,562],[234,528],[234,494],[234,450]),
+  ...M([P([212,450],[204,494],[206,528],[202,556],[212,562],[232,562],[234,528],[234,494],[234,450])]),
+  P([204,556],[234,556]),
+  ...M([P([204,556],[234,556])]),
+  P([212,562],[208,598]),
+  P([230,562],[233,598]),
+  ...M([P([212,562],[208,598]),
+       P([230,562],[233,598])]),
+  P([210,598],[196,600],[194,610],[216,612],[218,600],[214,598]),
+  ...M([P([210,598],[196,600],[194,610],[216,612],[218,600],[214,598])]),
+], circles: [[204,604,2],[276,604,2]] },
+{ name: "MAXI SKIRT", paths: [
+  P([210,450],[194,520],[188,580],[192,616],[206,624],[240,628],[274,624],[288,616],[292,580],[286,520],[270,450]),
+  P([210,462],[270,462]),
+], thin: [
+  P([222,470],[214,560],[218,620]),
+  P([240,470],[240,566],[240,624]),
+  P([258,470],[266,560],[262,620]),
+]},
+{ name: "SHORTS & BOOTS", paths: [
+  P([210,450],[270,450]),
+  P([210,450],[204,490],[202,520],[214,530],[240,524],[266,530],[278,520],[276,490],[270,450]),
+  P([204,514],[216,520]),
+  ...M([P([204,514],[216,520])]),
+  P([216,530],[214,562],[216,588]),
+  P([232,530],[233,562],[234,588]),
+  ...M([P([216,530],[214,562],[216,588]),
+       P([232,530],[233,562],[234,588])]),
+  P([214,588],[204,592],[202,622],[214,630],[238,630],[240,612],[236,588],[214,588]),
+  ...M([P([214,588],[204,592],[202,622],[214,630],[238,630],[240,612],[236,588],[214,588])]),
+  P([212,584],[238,584]),
+  ...M([P([212,584],[238,584])]),
+]},
+];
+
+const PACKS = [
+  { id: "monster", title: "RUB-A-MONSTER MAKER", zones: [
+    { label: "HEAD", plates: HEADS, y0: 50, y1: 252 },
+    { label: "TORSO", plates: TORSOS, y0: 252, y1: 450 },
+    { label: "LEGS", plates: LEGS, y0: 450, y1: 632 },
+  ]},
+  { id: "fashion", title: "RUB-A-FASHION MAKER", zones: [
+    { label: "HEAD", plates: FASHION_HEADS, y0: 50, y1: 252 },
+    { label: "TORSO", plates: FASHION_TORSOS, y0: 252, y1: 450 },
+    { label: "LEGS", plates: FASHION_LEGS, y0: 450, y1: 632 },
+  ]},
+];
+let packIdx = 0;
+const selByPack = [[0, 0, 0], [0, 0, 0]];
+const curSel = () => selByPack[packIdx];
+const curZones = () => PACKS[packIdx].zones;
+
+/* ============ canvases ============ */
+const paper = document.getElementById("paper");
+const pctx = paper.getContext("2d");
+const W = 480, H = 640;
+function mk(w = W, h = H) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+
+const artC = mk();    // hidden line art (rendered in trace color)
+const waxC = mk();    // rubbing mask (alpha accumulates)
+const smearC = mk();  // faint wax residue everywhere rubbed
+const paintC = mk();  // freehand color layer
+const tmpC = mk();    // compositing scratch
+const paperTex = mk();
+
+(function makePaperTexture() {
+  const t = paperTex.getContext("2d");
+  t.fillStyle = "#f7f2e4";
+  t.fillRect(0, 0, W, H);
+  for (let i = 0; i < 9000; i++) {
+    const x = Math.random() * W, y = Math.random() * H;
+    const v = 205 + Math.random() * 45 | 0;
+    t.fillStyle = `rgba(${v},${v - 6},${v - 18},${0.05 + Math.random() * 0.09})`;
+    t.fillRect(x, y, 1.4, 1.4);
+  }
+  t.fillStyle = "rgba(160,120,60,.05)";
+  for (let i = 0; i < 26; i++) {
+    t.beginPath();
+    t.ellipse(Math.random() * W, Math.random() * H, 20 + Math.random() * 40, 8 + Math.random() * 16, Math.random() * 3, 0, 7);
+    t.fill();
+  }
+})();
+
+/* ============ state ============ */
+let mode = "rub";           // "rub" | "color"
+let traceColor = "#1c1712"; // current crayon
+let peek = false;
+const CRAYONS = [
+  ["#1c1712", "Black"], ["#8a3b2a", "Brick"], ["#d4452c", "Red"], ["#e07b2a", "Orange"], ["#e8b62e", "Yellow"],
+  ["#7a9c2e", "Green"], ["#2e6e8e", "Blue"], ["#55468e", "Violet"], ["#94476e", "Mulberry"], ["#8a7f6a", "Taupe"],
+];
+
+/* ============ art rendering ============ */
+function strokePlate(ctx, plate, color, lw) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.fillStyle = color;
+  ctx.lineWidth = lw;
+  for (const path of (plate.paths || [])) {
+    ctx.beginPath();
+    path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  }
+  ctx.lineWidth = lw * 0.7;
+  for (const path of (plate.thin || [])) {
+    ctx.beginPath();
+    path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  }
+  for (const [x, y, r] of (plate.circles || [])) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function renderArt() {
+  const a = artC.getContext("2d");
+  a.clearRect(0, 0, W, H);
+  const zones = curZones(), s = curSel();
+  for (let z = 0; z < 3; z++) strokePlate(a, zones[z].plates[s[z]], traceColor, 4);
+  document.getElementById("comboName").textContent =
+    zones.map((zone, z) => zone.plates[s[z]].name).join("  +  ");
+}
+function renderPreviews() {
+  document.querySelectorAll(".slot").forEach(slotEl => {
+    const z = +slotEl.dataset.zone;
+    const cv = slotEl.querySelector(".prev");
+    const c = cv.getContext("2d");
+    c.clearRect(0, 0, cv.width, cv.height);
+    const zone = curZones()[z];
+    const zh = zone.y1 - zone.y0;
+    const s = Math.min(cv.width / W * 1.55, cv.height / zh * 0.92);
+    c.save();
+    c.translate(cv.width / 2, cv.height / 2);
+    c.scale(s, s);
+    c.translate(-240, -(zone.y0 + zh / 2));
+    strokePlate(c, zone.plates[curSel()[z]], "#5a4632", 3.5 / s);
+    c.restore();
+    slotEl.querySelector(".name").textContent = zone.plates[curSel()[z]].name;
+  });
+}
+function newSheet() {
+  waxC.getContext("2d").clearRect(0, 0, W, H);
+  smearC.getContext("2d").clearRect(0, 0, W, H);
+  paintC.getContext("2d").clearRect(0, 0, W, H);
+  dirty = true;
+}
+function setPlate(z, i) {
+  const s = curSel(), zones = curZones();
+  s[z] = (i + zones[z].plates.length) % zones[z].plates.length;
+  newSheet();
+  renderArt();
+  renderPreviews();
+}
+
+/* ============ compositing ============ */
+let dirty = true;
+function composite() {
+  pctx.clearRect(0, 0, W, H);
+  pctx.drawImage(paperTex, 0, 0);
+  pctx.drawImage(smearC, 0, 0);
+  // art visible only where wax has been rubbed (crayon-transfer effect)
+  const t = tmpC.getContext("2d");
+  t.globalCompositeOperation = "source-over";
+  t.clearRect(0, 0, W, H);
+  t.drawImage(waxC, 0, 0);
+  t.globalCompositeOperation = "source-in";
+  t.drawImage(artC, 0, 0);
+  t.globalCompositeOperation = "source-over";
+  pctx.drawImage(tmpC, 0, 0);
+  pctx.drawImage(paintC, 0, 0);
+  if (peek) { pctx.globalAlpha = 0.13; pctx.drawImage(artC, 0, 0); pctx.globalAlpha = 1; }
+}
+(function loop() {
+  if (dirty) { composite(); dirty = false; }
+  requestAnimationFrame(loop);
+})();
+
+/* ============ rubbing engine ============ */
+const waxCtx = waxC.getContext("2d");
+const smearCtx = smearC.getContext("2d");
+const paintCtx = paintC.getContext("2d");
+let drawing = false, last = null;
+
+function canvasPos(e) {
+  const r = paper.getBoundingClientRect();
+  return [ (e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height ];
+}
+function rubSegment(a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const dist = Math.hypot(dx, dy);
+  const steps = Math.max(1, Math.floor(dist / 2.5));
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const cx = a[0] + dx * t, cy = a[1] + dy * t;
+    // crisp wax dots along the raised lines (accumulate into mask)
+    for (let d = 0; d < 34; d++) {
+      const ox = (Math.random() * 2 - 1) * 14, oy = (Math.random() * 2 - 1) * 14;
+      if (ox * ox + oy * oy > 196) continue;
+      waxCtx.fillStyle = `rgba(0,0,0,${0.09 + Math.random() * 0.09})`;
+      waxCtx.fillRect(cx + ox, cy + oy, 2.2, 2.2);
+    }
+    // faint broad smear — wax catches the paper everywhere
+    for (let d = 0; d < 3; d++) {
+      const ox = (Math.random() * 2 - 1) * 26, oy = (Math.random() * 2 - 1) * 26;
+      smearCtx.fillStyle = `rgba(150,125,95,${0.012 + Math.random() * 0.014})`;
+      smearCtx.fillRect(cx + ox, cy + oy, 2.4, 2.4);
+    }
+  }
+}
+function colorSegment(a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const dist = Math.hypot(dx, dy);
+  const steps = Math.max(1, Math.floor(dist / 3));
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const cx = a[0] + dx * t, cy = a[1] + dy * t;
+    for (let d = 0; d < 4; d++) {
+      const ox = (Math.random() * 2 - 1) * 5.5, oy = (Math.random() * 2 - 1) * 5.5;
+      paintCtx.fillStyle = traceColor;
+      paintCtx.globalAlpha = 0.24 + Math.random() * 0.2;
+      paintCtx.beginPath();
+      paintCtx.arc(cx + ox, cy + oy, 2.6 + Math.random() * 1.6, 0, Math.PI * 2);
+      paintCtx.fill();
+    }
+    paintCtx.globalAlpha = 1;
+  }
+}
+
+/* ============ input ============ */
+paper.addEventListener("pointerdown", e => {
+  e.preventDefault();
+  try { paper.setPointerCapture(e.pointerId); } catch (_) {}
+  drawing = true;
+  last = canvasPos(e);
+  audioStart();
+});
+paper.addEventListener("pointermove", e => {
+  if (!drawing) return;
+  const p = canvasPos(e);
+  const d = Math.hypot(p[0] - last[0], p[1] - last[1]);
+  if (d < 1.2) return;
+  if (mode === "rub") { rubSegment(last, p); audioSpeed(d); }
+  else { colorSegment(last, p); audioSpeed(d); }
+  last = p;
+  dirty = true;
+});
+function endStroke() { drawing = false; audioStop(); }
+paper.addEventListener("pointerup", endStroke);
+paper.addEventListener("pointercancel", endStroke);
+paper.addEventListener("lostpointercapture", endStroke);
+
+/* ============ crayon sound ============ */
+let AC = null, noiseGain = null, soundOn = true;
+function audioInit() {
+  if (AC || !soundOn) return;
+  try {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    const len = AC.sampleRate;
+    const buf = AC.createBuffer(1, len, AC.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+    const src = AC.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const bp = AC.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = 1700; bp.Q.value = 0.8;
+    noiseGain = AC.createGain();
+    noiseGain.gain.value = 0;
+    src.connect(bp).connect(noiseGain).connect(AC.destination);
+    src.start();
+  } catch (_) { AC = null; }
+}
+function audioStart() { audioInit(); if (AC && AC.state === "suspended") AC.resume(); }
+function audioSpeed(d) { if (noiseGain) noiseGain.gain.setTargetAtTime(Math.min(0.055, 0.012 + d * 0.0016), AC.currentTime, 0.03); }
+function audioStop() { if (noiseGain) noiseGain.gain.setTargetAtTime(0, AC.currentTime, 0.05); }
+
+/* ============ UI wiring ============ */
+document.querySelectorAll(".slot").forEach(slotEl => {
+  const z = +slotEl.dataset.zone;
+  slotEl.querySelectorAll("button").forEach(btn =>
+    btn.addEventListener("click", () => setPlate(z, curSel()[z] + +btn.dataset.dir)));
+});
+document.getElementById("shuffleBtn").addEventListener("click", () => {
+  const s = curSel(), zones = curZones();
+  for (let z = 0; z < 3; z++) s[z] = Math.floor(Math.random() * zones[z].plates.length);
+  newSheet(); renderArt(); renderPreviews();
+});
+document.getElementById("sheetBtn").addEventListener("click", newSheet);
+
+const h1El = document.querySelector("h1");
+function setPack(i) {
+  packIdx = i;
+  document.getElementById("packMonster").classList.toggle("on", i === 0);
+  document.getElementById("packFashion").classList.toggle("on", i === 1);
+  h1El.firstChild.textContent = PACKS[i].title;
+  newSheet(); renderArt(); renderPreviews();
+}
+document.getElementById("packMonster").addEventListener("click", () => setPack(0));
+document.getElementById("packFashion").addEventListener("click", () => setPack(1));
+
+const crayonBox = document.getElementById("crayons");
+CRAYONS.forEach(([hex, label], i) => {
+  const b = document.createElement("button");
+  b.className = "crayon" + (i === 0 ? " sel" : "");
+  b.style.background = hex;
+  b.title = label;
+  b.setAttribute("aria-label", label + " crayon");
+  b.innerHTML = "<span></span>";
+  b.addEventListener("click", () => {
+    traceColor = hex;
+    crayonBox.querySelectorAll(".crayon").forEach(c => c.classList.remove("sel"));
+    b.classList.add("sel");
+    if (mode === "rub") renderArt(); // re-render hidden art in new crayon color
+  });
+  crayonBox.appendChild(b);
+});
+
+const modeRub = document.getElementById("modeRub");
+const modeColor = document.getElementById("modeColor");
+modeRub.addEventListener("click", () => setMode("rub"));
+modeColor.addEventListener("click", () => setMode("color"));
+function setMode(m) {
+  mode = m;
+  modeRub.classList.toggle("on", m === "rub");
+  modeColor.classList.toggle("on", m === "color");
+}
+
+const peekBtn = document.getElementById("peekBtn");
+const peekOn = () => { peek = true; dirty = true; };
+const peekOff = () => { peek = false; dirty = true; };
+peekBtn.addEventListener("pointerdown", e => { e.preventDefault(); peekOn(); });
+peekBtn.addEventListener("pointerup", peekOff);
+peekBtn.addEventListener("pointerleave", peekOff);
+peekBtn.addEventListener("pointercancel", peekOff);
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const out = mk();
+  const o = out.getContext("2d");
+  o.drawImage(paperTex, 0, 0);
+  o.drawImage(smearC, 0, 0);
+  const t = tmpC.getContext("2d");
+  t.globalCompositeOperation = "source-over";
+  t.clearRect(0, 0, W, H);
+  t.drawImage(waxC, 0, 0);
+  t.globalCompositeOperation = "source-in";
+  t.drawImage(artC, 0, 0);
+  t.globalCompositeOperation = "source-over";
+  o.drawImage(tmpC, 0, 0);
+  o.drawImage(paintC, 0, 0);
+  const a = document.createElement("a");
+  a.download = "rub-a-monster.png";
+  a.href = out.toDataURL("image/png");
+  a.click();
+});
+
+/* init */
+renderArt();
+renderPreviews();
+</script>
+</body>
+</html>
