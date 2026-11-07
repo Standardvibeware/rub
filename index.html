@@ -297,17 +297,17 @@
         <button id="packFashion">FASHION</button>
       </div>
       <div class="slot" data-zone="0">
-        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="preview"><canvas class="prev" width="112" height="148"></canvas></div>
         <div class="info"><div class="zone">HEAD</div><div class="name"></div></div>
         <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
       </div>
       <div class="slot" data-zone="1">
-        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="preview"><canvas class="prev" width="112" height="148"></canvas></div>
         <div class="info"><div class="zone">TORSO</div><div class="name"></div></div>
         <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
       </div>
       <div class="slot" data-zone="2">
-        <div class="preview"><canvas class="prev" width="56" height="74"></canvas></div>
+        <div class="preview"><canvas class="prev" width="112" height="148"></canvas></div>
         <div class="info"><div class="zone">LEGS</div><div class="name"></div></div>
         <div class="cycle"><button data-dir="1">&#8250;</button><button data-dir="-1">&#8249;</button></div>
       </div>
@@ -642,14 +642,14 @@ const FASHION_TORSOS = [
 const FASHION_LEGS = [
 { name: "TWIRL SKIRT", paths: [
   P([210,450],[196,530],[188,586],[200,600],[212,592],[224,604],[240,596],[256,604],[268,592],[280,600],[292,586],[284,530],[270,450]),
-  P([224,602],[222,622]),
-  ...M([P([224,602],[222,622])]),
-  P([218,622],[206,624],[204,633],[230,633],[230,622],[218,622]),
-  ...M([P([218,622],[206,624],[204,633],[230,633],[230,622],[218,622])]),
+  P([222,600],[220,616]),
+  ...M([P([222,600],[220,616])]),
+  P([212,616],[200,618],[198,631],[226,632],[228,616],[212,616]),
+  ...M([P([212,616],[200,618],[198,631],[226,632],[228,616],[212,616])]),
 ], thin: [
-  P([218,458],[210,578]),
-  P([240,458],[240,588]),
-  P([262,458],[270,578]),
+  P([218,458],[209,520],[212,580]),
+  P([240,458],[237,525],[241,589]),
+  P([262,458],[271,520],[268,580]),
 ]},
 { name: "BELL BOTTOMS", paths: [
   P([212,450],[202,496],[204,538],[196,570],[184,604],[178,618],[188,626],[248,626],[250,610],[240,576],[236,530],[236,490],[234,450],[212,450]),
@@ -712,9 +712,19 @@ const curZones = () => PACKS[packIdx].zones;
 
 /* ============ canvases ============ */
 const paper = document.getElementById("paper");
-const pctx = paper.getContext("2d");
 const W = 480, H = 640;
-function mk(w = W, h = H) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+const RES = Math.max(2, Math.min(3, window.devicePixelRatio || 1));
+paper.width = W * RES;
+paper.height = H * RES;
+const pctx = paper.getContext("2d");
+pctx.scale(RES, RES);
+function mk(w = W, h = H) {
+  const c = document.createElement("canvas");
+  c.width = w * RES; c.height = h * RES;
+  const x = c.getContext("2d");
+  x.scale(RES, RES);
+  return c;
+}
 
 const artC = mk();    // hidden line art (rendered in trace color)
 const waxC = mk();    // rubbing mask (alpha accumulates)
@@ -751,6 +761,27 @@ const CRAYONS = [
 ];
 
 /* ============ art rendering ============ */
+function turnFactor(a, b, c) {
+  // 1 where the path bends gently (smooth it), 0 at sharp corners (keep them crisp)
+  const v1x = b[0] - a[0], v1y = b[1] - a[1], v2x = c[0] - b[0], v2y = c[1] - b[1];
+  const m = Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y);
+  if (!m) return 0;
+  const cos = (v1x * v2x + v1y * v2y) / m;
+  return cos > 0.82 ? 1 : cos > 0.5 ? (cos - 0.5) / 0.32 : 0;
+}
+function tracePath(ctx, pts) {
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  if (pts.length === 2) { ctx.lineTo(pts[1][0], pts[1][1]); return; }
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const f1 = turnFactor(p0, p1, p2), f2 = turnFactor(p1, p2, p3);
+    ctx.bezierCurveTo(
+      p1[0] + (p2[0] - p0[0]) / 6 * f1, p1[1] + (p2[1] - p0[1]) / 6 * f1,
+      p2[0] - (p3[0] - p1[0]) / 6 * f2, p2[1] - (p3[1] - p1[1]) / 6 * f2,
+      p2[0], p2[1]
+    );
+  }
+}
 function strokePlate(ctx, plate, color, lw) {
   ctx.save();
   ctx.strokeStyle = color;
@@ -760,13 +791,13 @@ function strokePlate(ctx, plate, color, lw) {
   ctx.lineWidth = lw;
   for (const path of (plate.paths || [])) {
     ctx.beginPath();
-    path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    tracePath(ctx, path);
     ctx.stroke();
   }
   ctx.lineWidth = lw * 0.7;
   for (const path of (plate.thin || [])) {
     ctx.beginPath();
-    path.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    tracePath(ctx, path);
     ctx.stroke();
   }
   for (const [x, y, r] of (plate.circles || [])) {
@@ -820,19 +851,19 @@ function setPlate(z, i) {
 let dirty = true;
 function composite() {
   pctx.clearRect(0, 0, W, H);
-  pctx.drawImage(paperTex, 0, 0);
-  pctx.drawImage(smearC, 0, 0);
+  pctx.drawImage(paperTex, 0, 0, W, H);
+  pctx.drawImage(smearC, 0, 0, W, H);
   // art visible only where wax has been rubbed (crayon-transfer effect)
   const t = tmpC.getContext("2d");
   t.globalCompositeOperation = "source-over";
   t.clearRect(0, 0, W, H);
-  t.drawImage(waxC, 0, 0);
+  t.drawImage(waxC, 0, 0, W, H);
   t.globalCompositeOperation = "source-in";
-  t.drawImage(artC, 0, 0);
+  t.drawImage(artC, 0, 0, W, H);
   t.globalCompositeOperation = "source-over";
-  pctx.drawImage(tmpC, 0, 0);
-  pctx.drawImage(paintC, 0, 0);
-  if (peek) { pctx.globalAlpha = 0.13; pctx.drawImage(artC, 0, 0); pctx.globalAlpha = 1; }
+  pctx.drawImage(tmpC, 0, 0, W, H);
+  pctx.drawImage(paintC, 0, 0, W, H);
+  if (peek) { pctx.globalAlpha = 0.13; pctx.drawImage(artC, 0, 0, W, H); pctx.globalAlpha = 1; }
 }
 (function loop() {
   if (dirty) { composite(); dirty = false; }
@@ -999,17 +1030,17 @@ peekBtn.addEventListener("pointercancel", peekOff);
 document.getElementById("saveBtn").addEventListener("click", () => {
   const out = mk();
   const o = out.getContext("2d");
-  o.drawImage(paperTex, 0, 0);
-  o.drawImage(smearC, 0, 0);
+  o.drawImage(paperTex, 0, 0, W, H);
+  o.drawImage(smearC, 0, 0, W, H);
   const t = tmpC.getContext("2d");
   t.globalCompositeOperation = "source-over";
   t.clearRect(0, 0, W, H);
-  t.drawImage(waxC, 0, 0);
+  t.drawImage(waxC, 0, 0, W, H);
   t.globalCompositeOperation = "source-in";
-  t.drawImage(artC, 0, 0);
+  t.drawImage(artC, 0, 0, W, H);
   t.globalCompositeOperation = "source-over";
-  o.drawImage(tmpC, 0, 0);
-  o.drawImage(paintC, 0, 0);
+  o.drawImage(tmpC, 0, 0, W, H);
+  o.drawImage(paintC, 0, 0, W, H);
   const a = document.createElement("a");
   a.download = "rub-a-monster.png";
   a.href = out.toDataURL("image/png");
